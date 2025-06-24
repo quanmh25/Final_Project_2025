@@ -1,28 +1,95 @@
-** 1. Распределение задач по основным функциям **
-|Задачи|	Инструменты/Технологии|
-|:----|:-----|
-|Разработка функций управления задачами (добавление/удаление/редактирование, классификация по тегам).|	Python, Kivy, SQLite/JSON|
-|Дизайн интерфейса отображения задач (список по дням/приоритетам) и переключение темы (темная/светлая).|	Kivy, UI Design|
-|Реализация функций напоминаний (Pomodoro, дедлайн за 24 часа).|	Plyer, Schedule/APSchecduler|
-|Интеграция статистики производительности (количество выполненных задач, графики).|	SQLite, JSON, Google Sheets|
-|Сборка приложения (Buildozer для создания .apk файла).|	Buildozer, GitHub|
-|Тестирование (интерфейс, напоминания, стабильность) и сбор обратной связи.	|Ручное тестирование, анкетирование|
 
-** 2. Общие задачи для всей команды **
+# 📋 Todo App – Task Management with Kivy
 
-Проектирование базы данных: Совместное обсуждение структуры данных (SQLite/JSON/Google Sheets).
+A cross-platform, customizable task management app built with **Python**, **Kivy**, and **SQLite**.  
+The app allows you to **create**, **categorize**, **tag**, **schedule**, and **analyze** your daily tasks with an intuitive UI and dark/light theme support.
 
-Ревью кода: Каждый проверяет код другого участника (например, Куан тестирует интерфейс Ильи, Илья проверяет напоминания Абдельсалама).
+---
 
-Документирование: Запись рабочих процессов и инструкций на GitHub.
+## 🚀 Features
 
-** Предлагаемый график **
+- ✅ **Add/Edit/Delete Tasks**
+- 🎯 **Mark Tasks as Completed or Pending**
+- 📂 **Categories and Tags** for task grouping and filtering
+- ⏰ **Set Deadlines** with date and optional time
+- 📊 **Statistics Dashboard** with completion progress and charts
+- 🌙 **Light/Dark Theme Toggle** (persisted across sessions)
+- 🧩 **Modular Design** using Kivy's `ScreenManager`
+- 💾 **SQLite Database** with automatic schema creation
 
-Неделя 1: Дизайн интерфейса + Проектирование БД (Илья + Абдельсалам).
+---
 
-Неделя 2: Реализация функций задач + напоминаний (Илья + Абдельсалам).
+## 🖥️ Screenshots
 
-Неделя 3: Сборка + Тестирование (Куан ведущий, команда поддерживает).
+> *(Add screenshots here if available)*
 
-Неделя 4: Исправление ошибок + Улучшения по отзывам.
+---
+
+## 🛠️ Tech Stack
+
+- **Python 3**
+- **Kivy** – UI framework
+- **SQLite** – embedded database
+- **Object-Oriented Design** – modular architecture
+
+---
+
+## 📂 Folder Structure
+
+```
+project/
+│
+├── models/
+│   ├── category.py         # Category UI and logic
+│   ├── custom_ui.py        # Custom buttons, inputs, and themes
+│   ├── database.py         # SQLite DB operations
+│   ├── deadline.py         # Deadline features and reminder logic
+│   ├── stats_screen.py     # Statistics screen with charts
+│   └── todo_screen.py      # Main screen for tasks
+│
+├── data/                   # App data folder (created automatically)
+│   └── todo.db             # SQLite database
+|  
+│
+├── main.py                 # App entry point and screen manager
+└── README.md
+```
+
+---
+
+## ⚙️ Installation & Run
+
+### 📦 Requirements
+
+- Python 3.7+
+- Kivy (`pip install kivy`)
+- Optionally: Kivy dependencies for your OS (e.g. `pygame`, `sdl2`, etc.)
+
+### ▶️ Run the App
+
+```bash
+python main.py
+```
+
+> The app will create the `data/todo.db` database and theme settings on first run.
+
+---
+
+## 💡 Customization
+
+- Modify `UIConfig` in `models/custom_ui.py` or `models/category.py` to tweak colors, fonts, sizes.
+- Add new task types, priorities, or screen tabs via `ScreenManager` in `main.py`.
+
+---
+
+## 🗂️ Persistence
+
+All data is stored in `data/todo.db` using **SQLite**.  
+Theme preference is saved to `data/theme.json`.
+
+---
+
+## 📘 License
+
+This project is open-source and licensed under the MIT License.
 
