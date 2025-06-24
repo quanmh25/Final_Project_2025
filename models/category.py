@@ -14,11 +14,11 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.graphics import Color, Rectangle
 from kivy.uix.widget import Widget
 
+from models.database import CategoryDB
+
 
 class UIConfig(EventDispatcher):
     theme_changed = ObjectProperty(None, allownone=True)
-    
-    # Themes
     LIGHT_THEME = {
         'PRIMARY_COLOR': (0.2, 0.6, 0.9, 1),      # Blue
         'SECONDARY_COLOR': (0.1, 0.4, 0.7, 1),    # Dark Blue
@@ -111,150 +111,6 @@ class UIConfig(EventDispatcher):
     
     def on_theme_changed(self, theme_name):
         pass  # Event handler placeholder
-
-
-class CategoryDB:
-    def __init__(self, db_path="data/todo.db"):
-        os.makedirs('data', exist_ok=True)
-        self.conn = sqlite3.connect(db_path)
-        self.create_category_tables()
-    
-    def create_category_tables(self):
-        try:
-            self.conn.execute('''CREATE TABLE IF NOT EXISTS categories
-                                 (id INTEGER PRIMARY KEY,
-                                  name TEXT UNIQUE NOT NULL,
-                                  icon TEXT DEFAULT 'Default',
-                                  color TEXT DEFAULT '#4CAF50',
-                                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-            try:
-                self.conn.execute('ALTER TABLE tasks ADD COLUMN category_id INTEGER')
-                self.conn.execute('ALTER TABLE tasks ADD COLUMN tags TEXT')
-            except sqlite3.OperationalError:
-                pass
-            default_categories = [
-                ('Work', 'Work', '#2196F3'),
-                ('Personal', 'Personal', '#4CAF50'), 
-                ('Study', 'Study', '#FF9800'),
-                ('Health', 'Health', '#F44336'),
-                ('Shopping', 'Shopping', '#9C27B0'),
-                ('Home', 'Home', '#795548')
-            ]
-            for name, icon, color in default_categories:
-                try:
-                    self.conn.execute('INSERT INTO categories (name, icon, color) VALUES (?, ?, ?)',
-                                    (name, icon, color))
-                except sqlite3.IntegrityError:
-                    pass
-            self.conn.commit()
-        except sqlite3.Error as e:
-            print(f"Error creating category tables: {e}")
-    
-    def add_category(self, name, icon='Default', color='#4CAF50'):
-        try:
-            self.conn.execute('INSERT INTO categories (name, icon, color) VALUES (?, ?, ?)',
-                            (name, icon, color))
-            self.conn.commit()
-            return True
-        except sqlite3.Error as e:
-            print(f"Error adding category: {e}")
-            return False
-    
-    def get_categories(self):
-        try:
-            cursor = self.conn.execute('SELECT id, name, icon, color FROM categories ORDER BY name')
-            return cursor.fetchall()
-        except sqlite3.Error as e:
-            print(f"Error getting categories: {e}")
-            return []
-    
-    def delete_category(self, category_id):
-        try:
-            self.conn.execute('UPDATE tasks SET category_id = NULL WHERE category_id = ?', 
-                            (category_id,))
-            self.conn.execute('DELETE FROM categories WHERE id = ?', (category_id,))
-            self.conn.commit()
-            return True
-        except sqlite3.Error as e:
-            print(f"Error deleting category: {e}")
-            return False
-    
-    def set_task_category(self, task_id, category_id):
-        try:
-            self.conn.execute('UPDATE tasks SET category_id = ? WHERE id = ?',
-                            (category_id, task_id))
-            self.conn.commit()
-            return True
-        except sqlite3.Error as e:
-            print(f"Error setting task category: {e}")
-            return False
-    
-    def get_tasks_by_category(self, category_id=None):
-        try:
-            if category_id:
-                cursor = self.conn.execute('''SELECT t.id, t.title, t.done, c.name, c.icon
-                                            FROM tasks t
-                                            LEFT JOIN categories c ON t.category_id = c.id
-                                            WHERE t.category_id = ?
-                                            ORDER BY t.done ASC, t.id DESC''', (category_id,))
-            else:
-                cursor = self.conn.execute('''SELECT t.id, t.title, t.done, c.name, c.icon
-                                            FROM tasks t
-                                            LEFT JOIN categories c ON t.category_id = c.id
-                                            ORDER BY c.name, t.done ASC, t.id DESC''')
-            return cursor.fetchall()
-        except sqlite3.Error as e:
-            print(f"Error getting tasks by category: {e}")
-            return []
-    
-    def get_category_stats(self):
-        try:
-            cursor = self.conn.execute('''SELECT c.id, c.name, c.icon, 
-                                        COUNT(t.id) as total_tasks,
-                                        SUM(CASE WHEN t.done = 1 THEN 1 ELSE 0 END) as completed_tasks
-                                        FROM categories c
-                                        LEFT JOIN tasks t ON c.id = t.category_id
-                                        GROUP BY c.id, c.name, c.icon
-                                        ORDER BY total_tasks DESC''')
-            return cursor.fetchall()
-        except sqlite3.Error as e:
-            print(f"Error getting category stats: {e}")
-            return []
-    
-    def add_tag_to_task(self, task_id, tags):
-        try:
-            tag_str = ','.join(tags) if isinstance(tags, list) else tags
-            self.conn.execute('UPDATE tasks SET tags = ? WHERE id = ?',
-                            (tag_str, task_id))
-            self.conn.commit()
-            return True
-        except sqlite3.Error as e:
-            print(f"Error adding tags: {e}")
-            return False
-    
-    def get_all_tags(self):
-        try:
-            cursor = self.conn.execute('SELECT DISTINCT tags FROM tasks WHERE tags IS NOT NULL AND tags != ""')
-            all_tags = set()
-            for row in cursor.fetchall():
-                if row[0]:
-                    all_tags.update(tag.strip() for tag in row[0].split(','))
-            return sorted(list(all_tags))
-        except sqlite3.Error as e:
-            print(f"Error getting tags: {e}")
-            return []
-    
-    def search_tasks_by_tag(self, tag):
-        try:
-            cursor = self.conn.execute('''SELECT t.id, t.title, t.done, c.name, c.icon, t.tags
-                                        FROM tasks t
-                                        LEFT JOIN categories c ON t.category_id = c.id
-                                        WHERE t.tags LIKE ?
-                                        ORDER BY t.done ASC, t.id DESC''', (f'%{tag}%',))
-            return cursor.fetchall()
-        except sqlite3.Error as e:
-            print(f"Error searching tasks by tag: {e}")
-            return []
 
 
 class CategoryPopup(Popup):
@@ -496,6 +352,16 @@ class CategoryScreen(BoxLayout):
         ui_config = UIConfig()
         ui_config.bind(theme_changed=self.on_theme_changed)
 
+    def create_divider(self):
+        """Tạo một dòng kẻ ngang phân cách"""
+        divider = BoxLayout(size_hint_y=None, height=1)
+        with divider.canvas.before:
+            Color(*UIConfig.get_color('DISABLED_COLOR'))  # Màu của đường kẻ
+            divider.rect = Rectangle(pos=divider.pos, size=divider.size)
+        divider.bind(pos=lambda w, _: setattr(w.rect, 'pos', w.pos))
+        divider.bind(size=lambda w, _: setattr(w.rect, 'size', w.size))
+        return divider
+
     def on_theme_changed(self, instance, value):
         """Called when theme changes"""
         self.apply_theme()
@@ -504,17 +370,24 @@ class CategoryScreen(BoxLayout):
     def setup_ui(self):
         header = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10) # Header
         
-        self.title_label = Label(text="Categories & Tags", font_size='18sp')
+        self.title_label = Label(text="Categories & Tags", font_size='18sp', bold=True)
         header.add_widget(self.title_label)
         
-        self.add_category_btn = Button(text="Add Category", size_hint_x=None, width=120)
+        self.add_category_btn = Button(text="Add Category", 
+                                       size_hint_x=None, 
+                                       width=120,
+                                       color=(1, 1, 1, 1),
+                                       background_normal='',  # tắt nền mặc định
+                                       background_color=(0.2, 0.6, 0.8, 1)
+                                       )
+        
         self.add_category_btn.bind(on_press=lambda x: self.add_category())
         header.add_widget(self.add_category_btn)
-        
-        self.back_btn = Button(text="Back", size_hint_x=None, width=80)
-        self.back_btn.bind(on_press=self.go_back)
-        header.add_widget(self.back_btn)
-        
+
+        # self.back_btn = Button(text="Back", size_hint_x=None, width=80)
+        # self.back_btn.bind(on_press=self.go_back)
+        # header.add_widget(self.back_btn)
+
         self.add_widget(header)
         
         # Filter section
@@ -533,7 +406,7 @@ class CategoryScreen(BoxLayout):
         filter_section.add_widget(self.filter_spinner)
         
         filter_section.add_widget(Widget()) #đẩy phần sau sang phải
-        
+
         self.tag_label = Label(text="Tag:", size_hint_x=None, width=40)
         filter_section.add_widget(self.tag_label)
         
@@ -548,17 +421,26 @@ class CategoryScreen(BoxLayout):
         filter_section.add_widget(self.tag_search)
 
 
-        self.search_btn = Button(text="Search", size_hint_x=None, width=80)
+        self.search_btn = Button(text="Search", 
+                                 size_hint_x=None, 
+                                 width=80, 
+                                 color=(1, 1, 1, 1),
+                                 background_normal='',  # tắt nền mặc định
+                                 background_color=(0.2, 0.6, 0.8, 1) 
+                                 )
+        
         self.search_btn.bind(on_press=lambda x: self.search_by_tag())
         filter_section.add_widget(self.search_btn)
         
         self.add_widget(filter_section)
-        
+        self.add_widget(self.create_divider())
+
         # Stats container
         self.stats_container = BoxLayout(orientation='vertical', size_hint_y=None, spacing=5)
         self.stats_container.bind(minimum_height=self.stats_container.setter('height'))
         self.add_widget(self.stats_container)
-        
+        self.add_widget(self.create_divider())
+
         # Tasks scroll view
         scroll = ScrollView()
         self.tasks_container = BoxLayout(orientation='vertical', size_hint_y=None, spacing=5)
@@ -587,7 +469,7 @@ class CategoryScreen(BoxLayout):
         
         # Apply theme to buttons
         self.apply_button_theme(self.add_category_btn, 'PRIMARY_COLOR')
-        self.apply_button_theme(self.back_btn, 'SECONDARY_COLOR')
+        # self.apply_button_theme(self.back_btn, 'SECONDARY_COLOR')
         self.apply_button_theme(self.search_btn, 'PRIMARY_COLOR')
         
         # Apply theme to inputs and spinner
@@ -645,16 +527,11 @@ class CategoryScreen(BoxLayout):
             header_widths = [160, 170, 160, 160, 100]
             for header, width in zip(headers, header_widths):
                 header_label = Label(
-                    text=header,
-                    size_hint_y=None,
-                    height=40,
+                    text=header, size_hint_y=None,
+                    height=40, bold=True,
                     color=UIConfig.get_color('TEXT_COLOR'),
-                    bold=True,
-                    halign='center',
-                    valign='middle',
-                    size_hint_x=None,
-                    # size=(100, 40)
-                    width=width  # Cố định độ rộng để khớp với nội dung
+                    halign='center', valign='middle',
+                    size_hint_x=None, width=width 
                 )
                 headers_layout.add_widget(header_label)
             self.stats_container.add_widget(headers_layout)
@@ -663,15 +540,13 @@ class CategoryScreen(BoxLayout):
                 if total > 0:
                     progress = f"{completed}/{total} ({completed/total*100:.0f}%)"
                     
-                    # BoxLayout cho từng hàng, tương tự task_layout
                     stat_row = BoxLayout(
                         size_hint_y=None,
                         height=50,
                         spacing=5,
                         padding=5
                     )
-                    
-                    # Nhãn danh mục
+                    # Category name
                     category_label = Label(
                         text=name,
                         size_hint_y=None,
@@ -683,7 +558,7 @@ class CategoryScreen(BoxLayout):
                     )
                     stat_row.add_widget(category_label)
                     
-                    # Nhãn tổng số nhiệm vụ
+                    # Total tasks
                     total_label = Label(
                         text=str(total),
                         size_hint_y=None,
@@ -695,7 +570,7 @@ class CategoryScreen(BoxLayout):
                     )
                     stat_row.add_widget(total_label)
                     
-                    # Nhãn nhiệm vụ hoàn thành
+                    # Completed tasks
                     completed_label = Label(
                         text=str(completed),
                         size_hint_y=None,
@@ -707,7 +582,7 @@ class CategoryScreen(BoxLayout):
                     )
                     stat_row.add_widget(completed_label)
                     
-                    # Nhãn tiến độ
+                    # Progress
                     progress_label = Label(
                         text=progress,
                         size_hint_y=None,
@@ -724,9 +599,10 @@ class CategoryScreen(BoxLayout):
                         size_hint=(None, None),
                         size=(100, 40),  # Khớp với kích thước của Categorize
                         background_color=UIConfig.get_color('DANGER_COLOR'),
-                        color=UIConfig.get_color('TEXT_COLOR'),
+                        color=(1, 1, 1, 1),
                         halign='center',
-                        valign='middle'
+                        valign='middle',
+                        
                     )
                     delete_btn.bind(on_press=lambda x, cat_id=category_id, cat_name=name: 
                                 self.delete_category(cat_id, cat_name))
@@ -782,7 +658,7 @@ class CategoryScreen(BoxLayout):
                 valign='middle',
                 pos_hint={'center_y': 0.5},
                 background_color=UIConfig.get_color('SUCCESS_COLOR' if done else 'PRIMARY_COLOR'),
-                color=UIConfig.get_color('TEXT_COLOR')
+                color=(1, 1, 1, 1)
             )
             status_btn.bind(on_press=lambda x, tid=task_id: self.toggle_task_status(tid))
             task_layout.add_widget(status_btn)
@@ -815,7 +691,7 @@ class CategoryScreen(BoxLayout):
                 size_hint=(None, None),
                 size=(100, 40),
                 background_color=UIConfig.get_color('SECONDARY_COLOR'),
-                color=UIConfig.get_color('TEXT_COLOR')
+                color=(1, 1, 1, 1)
             )
             categorize_btn.bind(on_press=lambda x, tid=task_id, ttitle=title: 
                               self.open_categorize_popup(tid, ttitle))
@@ -923,14 +799,11 @@ class CategoryScreen(BoxLayout):
 
         for task_id, title, done, category_name, category_icon, tags in tasks:
             task_layout = BoxLayout(
-                size_hint_y=None,
-                height=50,
-                spacing=5,
-                padding=5
+                size_hint_y=None, height=50, spacing=5, padding=5
             )
 
             status_btn = Button(
-                text='✓' if done else '○',
+                text='C' if done else 'P',
                 size_hint=(None, None),
                 size=(40, 40),
                 background_color=UIConfig.get_color('SUCCESS_COLOR' if done else 'PRIMARY_COLOR'),
