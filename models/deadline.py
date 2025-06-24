@@ -104,7 +104,7 @@ class DeadlinePopup(Popup):
         
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
         
-        # Date input
+        # Date input section
         content.add_widget(Label(text="Deadline Date (YYYY-MM-DD):", 
                                size_hint_y=None, height=30))
         self.date_input = TextInput(
@@ -113,7 +113,7 @@ class DeadlinePopup(Popup):
         )
         content.add_widget(self.date_input)
         
-        # Time input
+        # Time input section (optional)
         content.add_widget(Label(text="Deadline Time (HH:MM) - Optional:", 
                                size_hint_y=None, height=30))
         self.time_input = TextInput(
@@ -122,7 +122,7 @@ class DeadlinePopup(Popup):
         )
         content.add_widget(self.time_input)
         
-        # Buttons
+        # Action buttons
         buttons = BoxLayout(spacing=10, size_hint_y=None, height=50)
         
         save_btn = Button(text="Save Deadline")
@@ -141,7 +141,7 @@ class DeadlinePopup(Popup):
         date_text = self.date_input.text.strip()
         time_text = self.time_input.text.strip() or None
         
-        # Validate date format
+        # Validate date and time format
         try:
             datetime.strptime(date_text, '%Y-%m-%d')
             if time_text:
@@ -176,19 +176,19 @@ class DeadlineScreen(BoxLayout):
         self.spacing = 10
         self.padding = 10
         
-        # Title
-        title = Label(text="📅 Deadline Management", 
+        # Screen title
+        title = Label(text="Deadline Management", 
                      size_hint_y=None, height=50,
                      font_size='18sp')
         self.add_widget(title)
         
         # Refresh button
-        refresh_btn = Button(text="🔄 Refresh", 
+        refresh_btn = Button(text="Refresh", 
                            size_hint_y=None, height=40)
         refresh_btn.bind(on_press=lambda x: self.refresh_deadlines())
         self.add_widget(refresh_btn)
         
-        # Scroll view for tasks
+        # Scrollable container for tasks
         scroll = ScrollView()
         self.tasks_container = BoxLayout(orientation='vertical', 
                                        size_hint_y=None, spacing=5)
@@ -196,33 +196,33 @@ class DeadlineScreen(BoxLayout):
         scroll.add_widget(self.tasks_container)
         self.add_widget(scroll)
         
-        # Start reminder checker
-        Clock.schedule_interval(self.check_reminders, 300)  # Check every 5 minutes
+        # Start periodic reminder checking (every 5 minutes)
+        Clock.schedule_interval(self.check_reminders, 300)
         
         self.refresh_deadlines()
     
     def refresh_deadlines(self):
         self.tasks_container.clear_widgets()
         
-        # Show overdue tasks
+        # Display overdue tasks section
         overdue = self.deadline_db.get_overdue_tasks()
         if overdue:
-            self.add_section_header("⚠️ OVERDUE TASKS", (1, 0.3, 0.3, 1))
+            self.add_section_header("OVERDUE TASKS", (1, 0.3, 0.3, 1))
             for task_id, title, deadline_date, deadline_time in overdue:
                 self.create_deadline_widget(task_id, title, deadline_date, deadline_time, True)
         
-        # Show upcoming tasks
+        # Display upcoming tasks section
         upcoming = self.deadline_db.get_upcoming_tasks()
         if upcoming:
-            self.add_section_header("⏰ UPCOMING DEADLINES", (1, 0.8, 0.2, 1))
+            self.add_section_header("UPCOMING DEADLINES", (1, 0.8, 0.2, 1))
             for task_id, title, deadline_date, deadline_time in upcoming:
                 if (task_id, title, deadline_date, deadline_time) not in overdue:
                     self.create_deadline_widget(task_id, title, deadline_date, deadline_time, False)
         
-        # Show all tasks with deadlines
+        # Display all tasks with deadlines
         all_tasks = self.deadline_db.get_tasks_with_deadlines()
         if all_tasks:
-            self.add_section_header("📋 ALL TASKS WITH DEADLINES", (0.2, 0.6, 0.8, 1))
+            self.add_section_header("ALL TASKS WITH DEADLINES", (0.2, 0.6, 0.8, 1))
             for task_id, title, done, deadline_date, deadline_time, priority in all_tasks:
                 if done:  # Only show completed tasks in this section
                     self.create_completed_deadline_widget(task_id, title, deadline_date, deadline_time)
@@ -235,10 +235,7 @@ class DeadlineScreen(BoxLayout):
     def create_deadline_widget(self, task_id, title, deadline_date, deadline_time, is_overdue):
         box = BoxLayout(size_hint_y=None, height=60, spacing=10, padding=5)
         
-        # Color coding
-        bg_color = (1, 0.9, 0.9, 1) if is_overdue else (0.9, 1, 0.9, 1)
-        
-        # Task info
+        # Format deadline string
         deadline_str = deadline_date
         if deadline_time:
             deadline_str += f" {deadline_time}"
@@ -261,11 +258,12 @@ class DeadlineScreen(BoxLayout):
     def create_completed_deadline_widget(self, task_id, title, deadline_date, deadline_time):
         box = BoxLayout(size_hint_y=None, height=50, spacing=10, padding=5)
         
+        # Format deadline string for completed tasks
         deadline_str = deadline_date
         if deadline_time:
             deadline_str += f" {deadline_time}"
         
-        task_text = f"✅ {title} (Deadline was: {deadline_str})"
+        task_text = f"{title} (Deadline was: {deadline_str})"
         
         task_label = Label(text=task_text, text_size=(None, None), 
                           halign='left', color=(0.6, 0.6, 0.6, 1))
@@ -279,11 +277,11 @@ class DeadlineScreen(BoxLayout):
         popup.open()
     
     def check_reminders(self, dt):
-        """Check for upcoming deadlines and show reminders"""
+        """Check for upcoming deadlines and show reminder notifications"""
         upcoming = self.deadline_db.get_upcoming_tasks(days_ahead=1)
         
         for task_id, title, deadline_date, deadline_time in upcoming:
-            # Check if it's within 1 hour
+            # Check if deadline is within 1 hour
             try:
                 deadline_dt = datetime.strptime(deadline_date, '%Y-%m-%d')
                 if deadline_time:
@@ -301,14 +299,16 @@ class DeadlineScreen(BoxLayout):
                 continue
     
     def show_reminder(self, title, deadline_date, deadline_time):
+        # Format deadline string for reminder
         deadline_str = deadline_date
         if deadline_time:
             deadline_str += f" {deadline_time}"
             
         reminder_popup = Popup(
-            title="⏰ Deadline Reminder",
+            title="Deadline Reminder",
             content=Label(text=f"Task: {title}\nDeadline: {deadline_str}"),
             size_hint=(0.8, 0.4)
         )
         reminder_popup.open()
-        Clock.schedule_once(lambda dt: reminder_popup.dismiss(), 5)  # Auto-close after 5 seconds
+        # Auto-close reminder after 5 seconds
+        Clock.schedule_once(lambda dt: reminder_popup.dismiss(), 5)
