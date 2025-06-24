@@ -1,95 +1,124 @@
+# Modern Kivy To-Do App
 
-# 📋 Todo App – Task Management with Kivy
+![Made with Kivy](https://img.shields.io/badge/Made%20with-Kivy-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.7%2B-blue.svg)
 
-A cross-platform, customizable task management app built with **Python**, **Kivy**, and **SQLite**.  
-The app allows you to **create**, **categorize**, **tag**, **schedule**, and **analyze** your daily tasks with an intuitive UI and dark/light theme support.
+A versatile task management application built with Python and the Kivy framework. This app features a modern user interface, supports Light & Dark themes, and provides powerful features to help you manage your daily tasks effectively.
 
----
+<!-- TODO: Add a screenshot of the application here -->
+ 
+*(This is an example screenshot. You should replace it with an actual screenshot of your app.)*
 
-## 🚀 Features
+## ✨ Features
 
-- ✅ **Add/Edit/Delete Tasks**
-- 🎯 **Mark Tasks as Completed or Pending**
-- 📂 **Categories and Tags** for task grouping and filtering
-- ⏰ **Set Deadlines** with date and optional time
-- 📊 **Statistics Dashboard** with completion progress and charts
-- 🌙 **Light/Dark Theme Toggle** (persisted across sessions)
-- 🧩 **Modular Design** using Kivy's `ScreenManager`
-- 💾 **SQLite Database** with automatic schema creation
-
----
-
-## 🖥️ Screenshots
-
-> *(Add screenshots here if available)*
-
----
+- **Core Task Management**: Add, delete, and mark tasks as complete.
+- **Modern UI**: Custom UI components (buttons, text inputs) for a modern look and feel.
+- **Light & Dark Themes**: Easily switch between two interface modes to suit your preference.
+- **Category Management**:
+  - Create custom categories (e.g., Work, Personal, Study).
+  - Assign tasks to categories.
+  - View progress statistics for each category.
+  - Filter tasks by category.
+- **Tag Management**:
+  - Add tags to tasks for more detailed classification.
+  - Search and filter tasks by tags.
+- **Deadline Management**:
+  - Set due dates and times for tasks.
+  - Automatically view overdue and upcoming tasks.
+  - Receive reminder notifications for upcoming deadlines.
+- **Visual Statistics**:
+  - View an overall summary of tasks (total, completed, pending).
+  - Chart displaying the number of tasks completed by date.
+- **Persistent Storage**: All data is stored locally using SQLite, allowing the app to work offline.
 
 ## 🛠️ Tech Stack
 
-- **Python 3**
-- **Kivy** – UI framework
-- **SQLite** – embedded database
-- **Object-Oriented Design** – modular architecture
+- **Language**: Python 3
+- **Framework**: Kivy
+- **Database**: SQLite 3
 
----
+## 🚀 Getting Started
 
-## 📂 Folder Structure
+To run the application on your local machine, follow these steps:
 
-```
-project/
-│
-├── models/
-│   ├── category.py         # Category UI and logic
-│   ├── custom_ui.py        # Custom buttons, inputs, and themes
-│   ├── database.py         # SQLite DB operations
-│   ├── deadline.py         # Deadline features and reminder logic
-│   ├── stats_screen.py     # Statistics screen with charts
-│   └── todo_screen.py      # Main screen for tasks
-│
-├── data/                   # App data folder (created automatically)
-│   └── todo.db             # SQLite database
-|  
-│
-├── main.py                 # App entry point and screen manager
-└── README.md
+### 1. Prerequisites
+
+- [Python 3.7](https://www.python.org/downloads/) or newer.
+- `pip` (usually comes with Python).
+
+### 2. Installation Steps
+
+**a. Clone the repository:**
+
+```bash
+git clone <YOUR_REPOSITORY_URL>
+cd <your_repository_folder>
 ```
 
----
+**b. Create and activate a virtual environment (recommended):**
 
-## ⚙️ Installation & Run
+- **On Windows:**
+  ```bash
+  python -m venv venv
+  .\venv\Scripts\activate
+  ```
+- **On macOS/Linux:**
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
 
-### 📦 Requirements
+**c. Install the required dependencies:**
 
-- Python 3.7+
-- Kivy (`pip install kivy`)
-- Optionally: Kivy dependencies for your OS (e.g. `pygame`, `sdl2`, etc.)
+```bash
+pip install kivy
+```
 
-### ▶️ Run the App
+**d. Run the application:**
 
 ```bash
 python main.py
 ```
+The application will launch and automatically create the `data/todo.db` database file if it doesn't exist.
 
-> The app will create the `data/todo.db` database and theme settings on first run.
+## 📁 Project Structure
 
----
+For the project to run correctly, you need to organize the files according to the following structure. Your Python modules should be placed in the `models/` subdirectory (except for `main.py`).
 
-## 💡 Customization
+```
+your-project-root/
+├── main.py                 # Main entry point to run the app
+├── README.md               # This README file
+│
+├── data/                   # Automatically created directory for data storage
+│   ├── todo.db             # SQLite database file
+│   └── theme.json          # Stores the current theme setting
+│
+└── models/                 # Contains the application's modules
+    ├── __init__.py         # (Recommended, can be empty)
+    ├── database.py         # Manages DB connection and queries
+    ├── custom_ui.py        # Custom UI widgets and UI configuration
+    ├── todo_screen.py      # Main task management screen
+    ├── category.py         # Category and tag management screen
+    ├── deadline.py         # Deadline management screen
+    └── stats_screen.py     # Statistics screen
+```
 
-- Modify `UIConfig` in `models/custom_ui.py` or `models/category.py` to tweak colors, fonts, sizes.
-- Add new task types, priorities, or screen tabs via `ScreenManager` in `main.py`.
+## 📖 How to Use
 
----
+1.  **Add a Task**: Enter the task name in the input field at the top of the "Tasks" screen and press the "Add" button.
+2.  **Complete a Task**: Click the checkbox to the left of the task.
+3.  **Delete a Task**: Press the "Delete" button on the right side of the task.
+4.  **Navigate**: Use the navigation buttons at the bottom to switch between screens:
+    - **Tasks**: View and manage the to-do list.
+    - **Statistics**: View statistics and charts.
+    - **Category**: Manage categories, tags, and filter tasks.
+    - **Deadline**: Manage deadlines.
+5.  **Switch Theme**: Click the **D/L** (Dark/Light) button in the bottom-right corner to toggle the theme.
+6.  **Manage Categories**: On the "Category" screen, press "Add Category" to create a new one. To assign a task to a category, go to the "Category" screen and click the "Categorize" button on a task.
+7.  **Set a Deadline**: On the "Tasks" screen, click the "Add Deadline" button on a task to open the setup popup.
 
-## 🗂️ Persistence
+## 🤝 Contributing
 
-All data is stored in `data/todo.db` using **SQLite**.  
-Theme preference is saved to `data/theme.json`.
-
----
-
-## 📘 License
-
-This project is open-source and licensed under the MIT License.
-
+Contributions are welcome! If you have ideas for improvements, please feel free to create a `pull request` or open an `issue`.
+```
