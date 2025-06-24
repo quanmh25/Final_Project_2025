@@ -7,7 +7,23 @@ A versatile task management application built with Python and the Kivy framework
 
 <!-- TODO: Add a screenshot of the application here -->
  
-*(This is an example screenshot. You should replace it with an actual screenshot of your app.)*
+## 📸 Screenshots
+
+### Task Management Interface (Light theme)
+![Task UI](results/scr_1.jpg)
+
+### Task Management Interface (Dark theme)
+![Task UI](results/scr_2.jpg)
+
+### Statistics Overview
+![Stats](results/scr_3.jpg)
+
+### Category verview
+![Cat](results/scr_4.jpg)
+
+### Deadline Overview
+![Dead](results/scr_5.jpg)
+
 
 ## ✨ Features
 
