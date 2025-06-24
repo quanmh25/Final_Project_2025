@@ -26,6 +26,7 @@ import traceback                                                # Thư viện in
 
 
 
+
 # =============================================================================
 # UI DESIGN CONFIGURATION
 # =============================================================================
@@ -81,6 +82,7 @@ class UIConfig:
             theme_name = 'light'
         UIConfig.current_theme = theme_name
         UIConfig.theme_data = UIConfig.DARK_THEME if theme_name == 'dark' else UIConfig.LIGHT_THEME
+        
         # Save theme to file
         try:
             with open('data/theme.json', 'w') as f:
@@ -779,7 +781,8 @@ class MainApp(App):
         self.category_screen.add_widget(CategoryScreen(self.db))
         self.sm.add_widget(self.category_screen)
         self.theme_listeners.append(self.category_screen.children[0])
-        
+
+
         self.deadline_screen = Screen(name='deadlines')
         self.deadline_screen.add_widget(DeadlineScreen(self.db))
         self.sm.add_widget(self.deadline_screen)
